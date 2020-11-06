@@ -17,13 +17,11 @@ var square_coordinates = [
 
 // Retorna conjunto de linha referida
 function get_row(board, row) {
-  // Given a board, we can return a single row
   return board[row];
 }
 
 // Retorna conjunto da coluna referida
 function get_column(board, column) {
-  // Given a board, we iterate the rows to return a column
   var col = [];
   for (let row = 0; row < 9; row++) {
     col.push(board[row][column]);
@@ -81,19 +79,19 @@ function compare(expected, actual) {
 function is_solved(board) {
   let expected = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   let valid = true;
-  // Check all rows
+  // Checa todas linhas
   for (r = 0; r < 9 && valid == true; r++) {
     if (!compare(expected, get_row(board, r))) {
       valid = false;
     }
   }
-  // Check all columns
+  // Checa todas colunas
   for (c = 0; c < 9 && valid == true; c++) {
     if (!compare(expected, get_column(board, c))) {
       valid = false;
     }
   }
-  // Check all quadrants
+  // Checa todas quadrantes
   for (q = 1; q < 9 && valid == true; q++) {
     if (!compare(expected, get_square(board, q))) {
       valid = false;
