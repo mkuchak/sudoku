@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const fs = require("fs");
 var parse = require("csv-parse/lib/sync");
 
@@ -101,7 +100,7 @@ function is_solved(board) {
   return valid;
 }
 
-function backtrack_based(orig_board) {
+function backtrack(orig_board) {
   // Cria um quadro temporário para cada recursão
   let board = JSON.parse(JSON.stringify(orig_board));
 
@@ -120,7 +119,7 @@ function backtrack_based(orig_board) {
             // Escolhe novo valor
             board_2[r][c] = cell[i];
             // Tenta recursivamente de novo com novo tabuleiro
-            if ((completed_board = backtrack_based(board_2))) {
+            if ((completed_board = backtrack(board_2))) {
               return completed_board;
             }
           }
@@ -134,7 +133,7 @@ function backtrack_based(orig_board) {
 }
 
 function solve(board) {
-  board = backtrack_based(board);
+  board = backtrack(board);
 
   if (is_solved(board)) return board;
   else return "Dead end.";
