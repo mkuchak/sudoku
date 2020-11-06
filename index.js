@@ -1,3 +1,7 @@
+const fetch = require("node-fetch");
+const fs = require("fs");
+var parse = require("csv-parse/lib/sync");
+
 // Hardcoded, minimizes need for dynamic code later
 var square_coordinates = [
   [1, 1, 1, 2, 2, 2, 3, 3, 3],
@@ -266,17 +270,38 @@ function print_board(gameArr) {
   console.log("|=======|=======|=======|");
 }
 
-var sudoku = [
-  [0, 8, 0, 0, 0, 0, 9, 0, 0],
-  [0, 7, 5, 3, 6, 0, 0, 8, 0],
-  [0, 0, 0, 0, 4, 0, 0, 0, 0],
-  [6, 5, 0, 0, 0, 2, 3, 0, 0],
-  [0, 0, 0, 4, 5, 0, 0, 0, 0],
-  [2, 0, 9, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 7, 5, 0, 0],
-  [0, 0, 0, 0, 1, 3, 6, 0, 0],
-  [1, 0, 0, 0, 0, 0, 0, 0, 2],
-];
+// var test = [
+//   [0, 8, 0, 0, 0, 0, 9, 0, 0],
+//   [0, 7, 5, 3, 6, 0, 0, 8, 0],
+//   [0, 0, 0, 0, 4, 0, 0, 0, 0],
+//   [6, 5, 0, 0, 0, 2, 3, 0, 0],
+//   [0, 0, 0, 4, 5, 0, 0, 0, 0],
+//   [2, 0, 9, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 7, 5, 0, 0],
+//   [0, 0, 0, 0, 1, 3, 6, 0, 0],
+//   [1, 0, 0, 0, 0, 0, 0, 0, 2],
+// ];
 
-// print_board(sudoku); // Shows game
-print_board(solve(sudoku));
+async function printCodes() {
+  const fileContent = await fs.promises.readFile(__dirname + "/board.csv");
+  const records = parse(fileContent, { columns: false });
+
+  let sudoku = [];
+  await records.map((record) => {
+    sudoku.push(record);
+  });
+
+  var arrInt = [];
+  sudoku.map((arrays) => {
+    var tempArr = [];
+    arrays.map((number, i) => {
+      tempArr.push(parseInt(number));
+    });
+    arrInt.push(tempArr);
+  });
+
+  print_board(solve(arrInt));
+}
+
+printCodes();
+// print_board(solve(sudoku));
