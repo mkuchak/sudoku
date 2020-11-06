@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 const fs = require("fs");
 var parse = require("csv-parse/lib/sync");
 
-// Hardcoded, minimizes need for dynamic code later
+// Matriz de ajuda para facilitar identificação de quadrantes
 var square_coordinates = [
   [1, 1, 1, 2, 2, 2, 3, 3, 3],
   [1, 1, 1, 2, 2, 2, 3, 3, 3],
@@ -15,11 +15,13 @@ var square_coordinates = [
   [7, 7, 7, 8, 8, 8, 9, 9, 9],
 ];
 
+// Retorna conjunto de linha referida
 function get_row(board, row) {
   // Given a board, we can return a single row
   return board[row];
 }
 
+// Retorna conjunto da coluna referida
 function get_column(board, column) {
   // Given a board, we iterate the rows to return a column
   var col = [];
@@ -29,6 +31,7 @@ function get_column(board, column) {
   return col;
 }
 
+// Retorna quadrante 3x3 referido
 function get_square(board, square) {
   let cells = [];
   for (let r = 0; r < 9; r++) {
@@ -54,38 +57,13 @@ function complete_cell(board, r, c) {
     }
   }
   if (possibilities.length == 1) {
-    // If there is only one valid possibility, fill it in
+    // Se houver uma única possibilidade válida, preenche
     board[r][c] = possibilities[0];
     return true;
   } else {
     board[r][c] = possibilities;
     return false;
   }
-}
-
-function appears_once_only(board, possibilities, segment, r, c) {
-  let updated = false;
-  for (i = 0; i < possibilities.length; i++) {
-    let possibility = possibilities[i];
-    let counter = 0;
-    segment.forEach((cell) => {
-      if (Array.isArray(cell)) {
-        if (cell.includes(possibility)) {
-          counter++;
-        }
-      } else {
-        if (cell == possibility) {
-          counter++;
-        }
-      }
-    });
-    if (counter == 1) {
-      board[r][c] = possibility;
-      updated = true;
-      break;
-    }
-  }
-  return updated;
 }
 
 function compare(expected, actual) {
@@ -99,6 +77,7 @@ function compare(expected, actual) {
   );
 }
 
+// Checa se o tabuleiro está resolvido e não há inconsistências
 function is_solved(board) {
   let expected = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   let valid = true;
@@ -124,29 +103,29 @@ function is_solved(board) {
 }
 
 function backtrack_based(orig_board) {
-  // Create a temporary board for our recursion.
+  // Cria um quadro temporário para cada recursão
   let board = JSON.parse(JSON.stringify(orig_board));
 
   for (let r = 0; r < 9; r++) {
     for (let c = 0; c < 9; c++) {
-      // Process each incomplete cell
+      // Processa cada célula incompleta
       if (board[r][c] == 0) {
         complete_cell(board, r, c);
         if (is_solved(board)) return board;
         let cell = board[r][c];
-        // If we just created a list of possibilities, iterate them and recurse
+        // Interage recursivamente
         if (Array.isArray(cell)) {
           for (let i = 0; i < cell.length; i++) {
-            // Create a temporary board for each recursion.
+            // Cria um tabuleiro temporário para cada recursão
             let board_2 = JSON.parse(JSON.stringify(board));
-            // Choose a value
+            // Escolhe novo valor
             board_2[r][c] = cell[i];
-            // Recurse again using new board
+            // Tenta recursivamente de novo com novo tabuleiro
             if ((completed_board = backtrack_based(board_2))) {
               return completed_board;
             }
           }
-          return false; // dead end
+          return false; // Inconsistência no tabuleiro
         }
       }
     }
@@ -155,85 +134,14 @@ function backtrack_based(orig_board) {
   return false;
 }
 
-// Constraint based pass.
-// Apply the rules of Sudoku and mark up the cells we are
-// 100% can only be a single value.
-function one_value_cell_constraint(board) {
-  // Set to false at the start of the loop
-  updated = false;
-
-  // Convert every gap into an array of possibilities
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      if (board[r][c] == 0) {
-        updated = complete_cell(board, r, c) || updated;
-      }
-    }
-  }
-
-  // Look out for any possibility that appears as a possibility
-  // once-only in the row, column, or quadrant.
-  // If it does, fill it in!
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      if (Array.isArray(board[r][c])) {
-        let possibilities = board[r][c];
-        updated =
-          appears_once_only(board, possibilities, get_row(board, r), r, c) ||
-          appears_once_only(board, possibilities, get_column(board, c), r, c) ||
-          appears_once_only(
-            board,
-            possibilities,
-            get_square(board, square_coordinates[r][c]),
-            r,
-            c
-          ) ||
-          updated;
-      }
-    }
-  }
-
-  // Reinitialize gaps back to zero before ending
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
-      if (Array.isArray(board[r][c])) {
-        board[r][c] = 0;
-      }
-    }
-  }
-
-  return updated;
-}
-
 function solve(board) {
-  let updated = true,
-    solved = false;
-
-  /* 
-      Easy-Hard are solved via iterations where we look at the current
-      board and fill in any 100% guaranteed cells. We keep using the
-      same board, and fill in the gaps until solved.
-      
-      Always do this first.  We can make the board simpler, even if we
-      are unable to crack it entirely this way.
-
-      Tests show doing this FIRST is quicker for Hard-Evil sudoko as it
-      removes the number of blank cells ahead of the brute force.
-  */
-  // while (updated && !solved) {
-  //   updated = one_value_cell_constraint(board);
-  //   solved = is_solved(board);
-  // }
-
-  // Hard-Evil need brute force to finish off.
-  // if (!solved) {
   board = backtrack_based(board);
-  solved = is_solved(board);
-  // }
 
-  return board;
+  if (is_solved(board)) return board;
+  else return "Dead end.";
 }
 
+// Imprime na tela a divisão da grade
 function print_cell(value) {
   if (Array.isArray(value)) {
     return ".";
@@ -244,6 +152,7 @@ function print_cell(value) {
   }
 }
 
+// Imprime na tela o tabuleiro referido
 function print_board(gameArr) {
   console.log();
   for (i = 0; i < 9; i++) {
@@ -270,19 +179,8 @@ function print_board(gameArr) {
   console.log("|=======|=======|=======|");
 }
 
-// var test = [
-//   [0, 8, 0, 0, 0, 0, 9, 0, 0],
-//   [0, 7, 5, 3, 6, 0, 0, 8, 0],
-//   [0, 0, 0, 0, 4, 0, 0, 0, 0],
-//   [6, 5, 0, 0, 0, 2, 3, 0, 0],
-//   [0, 0, 0, 4, 5, 0, 0, 0, 0],
-//   [2, 0, 9, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 7, 5, 0, 0],
-//   [0, 0, 0, 0, 1, 3, 6, 0, 0],
-//   [1, 0, 0, 0, 0, 0, 0, 0, 2],
-// ];
-
 async function main() {
+  // Algoritmo obtém dados do arquivo CSV e joga em um uma matriz de inteiros
   const fileContent = await fs.promises.readFile(__dirname + "/board.csv");
   const records = parse(fileContent, { columns: false });
 
@@ -300,7 +198,10 @@ async function main() {
     arrInt.push(tempArr);
   });
 
+  // Imprime na tela tabuleiro atual na tela
   print_board(arrInt);
+
+  // Inicia a resolução do tabuleiro e imprime resultado na tela
   print_board(solve(arrInt));
 }
 
