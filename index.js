@@ -282,7 +282,7 @@ function print_board(gameArr) {
 //   [1, 0, 0, 0, 0, 0, 0, 0, 2],
 // ];
 
-async function printCodes() {
+async function main() {
   const fileContent = await fs.promises.readFile(__dirname + "/board.csv");
   const records = parse(fileContent, { columns: false });
 
@@ -304,4 +304,4 @@ async function printCodes() {
   print_board(solve(arrInt));
 }
 
-printCodes();
+main();
