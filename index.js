@@ -220,16 +220,16 @@ function solve(board) {
       Tests show doing this FIRST is quicker for Hard-Evil sudoko as it
       removes the number of blank cells ahead of the brute force.
   */
-  while (updated && !solved) {
-    updated = one_value_cell_constraint(board);
-    solved = is_solved(board);
-  }
+  // while (updated && !solved) {
+  //   updated = one_value_cell_constraint(board);
+  //   solved = is_solved(board);
+  // }
 
   // Hard-Evil need brute force to finish off.
-  if (!solved) {
-    board = backtrack_based(board);
-    solved = is_solved(board);
-  }
+  // if (!solved) {
+  board = backtrack_based(board);
+  solved = is_solved(board);
+  // }
 
   return board;
 }
