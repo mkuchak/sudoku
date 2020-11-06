@@ -42,6 +42,7 @@ function get_square(board, square) {
   return cells;
 }
 
+// Completa quadrante
 function complete_cell(board, r, c) {
   let used = [
     ...get_row(board, r),
