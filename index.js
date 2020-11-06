@@ -300,8 +300,8 @@ async function printCodes() {
     arrInt.push(tempArr);
   });
 
+  print_board(arrInt);
   print_board(solve(arrInt));
 }
 
 printCodes();
-// print_board(solve(sudoku));
